@@ -3,8 +3,17 @@ var router = express.Router();
 
 /* /articles 전체보기  */
 router.get('/', (req, res) => {
+    if(err){
+      res.status(500).send(err.toString());
+    } else {
+      const collection = client.db('test').collection('articles');
+      const cursor = collection.find({});
+      cursor.toArray((err, data)=>{
+        res.json(data);
+      });
 
-  res.json(result);
+      client.close();
+    }
 });
 
 /* /articles/:id 상세보기  */
