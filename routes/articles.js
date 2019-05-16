@@ -3,17 +3,19 @@ var router = express.Router();
 
 /* /articles 전체보기  */
 router.get('/', (req, res) => {
+  const client = new MongoClient(uri, { useNewUrlParser: true });
+  client.connect(err => {
     if(err){
       res.status(500).send(err.toString());
     } else {
-      const collection = client.db('test').collection('articles');
+      const collection = client.db(DBNAME).collection(COLLECTION);
       const cursor = collection.find({});
       cursor.toArray((err, data)=>{
         res.json(data);
       });
-
       client.close();
     }
+  });
 });
 
 /* /articles/:id 상세보기  */
