@@ -1,0 +1,113 @@
+const express = require('express');
+const router = express.Router();
+
+
+// copied mongodb atlas connect.
+const ObjectId = require('mongodb').ObjectId;
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://admin:1234@cluster0-qkwmt.mongodb.net/test?retryWrites=true";
+const DBNAME = "test";
+const COLLECTION = "articles";
+
+
+
+/* /articles 전체보기 */
+router.get('/', (req, res) => {
+  const client = new MongoClient(uri, { useNewUrlParser: true });
+  client.connect(err => {
+    if(err){
+      res.status(500).send(err.toString());
+    } else {
+
+      const collection = client.db(DBNAME).collection(COLLECTION);
+      const cursor = collection.find({});
+      cursor.toArray((err, data)=>{
+        res.json(data);
+      });
+
+      client.close();
+    }
+  });
+});
+
+/* /articles 상세보기 */
+router.get('/:articleNum', (req, res) => {
+  const articleNum = req.params.articleNum;
+  res.send(`${articleNum} 번 글 보기`);
+});
+
+/* articles 등록 */
+router.post('/', (req, res) => {
+  const articleJsonFromClient = req.body;  // app.use(express.json());
+
+  const client = new MongoClient(uri, { useNewUrlParser: true });
+  client.connect(err => {
+    if(err){
+      res.status(500).send(err.toString());
+    } else {
+      const collection = client.db(DBNAME).collection(COLLECTION);
+      collection.insertOne(articleJsonFromClient);
+      client.close();
+      res.json(articleJsonFromClient);
+    }
+  });
+
+});
+
+/* /articles 수정 */
+router.put('/:articleNum', (req, res) => {
+  const articleNum = (req.params.articleNum);
+  const jsonFromClient = req.body;
+  const client = new MongoClient(uri, { useNewUrlParser: true });
+  client.connect(err => {
+    if(err){
+      res.status(500).send(err.toString());
+    } else {
+      const collection = client.db(DBNAME).collection(COLLECTION);
+      collection.updateOne(
+          { _id: ObjectId(articleNum)},
+          {
+            $set: jsonFromClient
+          }
+      );
+      const cursor = collection.find({});
+      cursor.toArray((err, data)=>{
+        res.json(data);
+      });
+      //res.send(`${articleNum} 번 글 슈정하기`);
+
+      client.close();
+    }
+  });
+});
+
+
+router.delete('/:articleNum', (req, res)=> {
+  const articleNum = (req.params.articleNum);
+  const client = new MongoClient(uri, {userNewUrlParser: true});
+  client.connect((err => {
+    if(err){
+      res.status(500).send(err.toString());
+    } else {
+      const collection = client.db(DBNAME).collection(COLLECTION);
+
+      collection.deleteOne(
+          {_id : ObjectId(articleNum)
+          }
+      );
+
+      const cursor = collection.find({});
+      cursor.toArray((err, data)=>{
+        res.json(data);
+      });
+      //res.send(`${articleNum} 번 글 슈정하기`);
+
+      client.close();
+    }
+  }))
+});
+
+
+
+
+module.exports = router;
